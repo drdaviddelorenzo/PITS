@@ -4,7 +4,8 @@ Version: 0.1.0
 Authors@R:
     person("David", "de Lorenzo", email = "drdaviddelorenzo@gmail.com",
            role = c("aut", "cre"),
-           comment = c(ORCID = "0000-0003-2042-0961"))
+           comment = c(ORCID = "0000-0003-2042-0961",
+                       affiliation = "UCL Great Ormond Street Institute of Child Health, London, UK; Neotree"))
 Description: Provides tools for estimating the statistical power of Interrupted
     Time Series (ITS) designs, with a focus on healthcare applications. The
     package supports prospective power calculations before a study begins, and

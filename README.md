@@ -192,6 +192,13 @@ result$power_pct
 
 ---
 
+## Author
+
+**David de Lorenzo** ([ORCID 0000-0003-2042-0961](https://orcid.org/0000-0003-2042-0961))
+— UCL Great Ormond Street Institute of Child Health, London, UK; Neotree.
+
+---
+
 ## Licence
 
 MIT — see [LICENSE](LICENSE).

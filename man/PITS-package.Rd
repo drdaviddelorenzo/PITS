@@ -61,11 +61,11 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: David de Lorenzo \email{drdaviddelorenzo@gmail.com} (\href{https://orcid.org/0000-0003-2042-0961}{ORCID})
+\strong{Maintainer}: David de Lorenzo \email{drdaviddelorenzo@gmail.com} (\href{https://orcid.org/0000-0003-2042-0961}{ORCID}) (affiliation: UCL Great Ormond Street Institute of Child Health, London, UK; Neotree)
 
 Authors:
 \itemize{
-  \item David de Lorenzo \email{drdaviddelorenzo@gmail.com} (\href{https://orcid.org/0000-0003-2042-0961}{ORCID})
+  \item David de Lorenzo \email{drdaviddelorenzo@gmail.com} (\href{https://orcid.org/0000-0003-2042-0961}{ORCID}) (affiliation: UCL Great Ormond Street Institute of Child Health, London, UK; Neotree)
 }
 
 }
