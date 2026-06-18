@@ -1,0 +1,241 @@
+---
+title: "PITS: Power of an ITS — CDSS/CFR worked example"
+author: "PITS package"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{PITS: Power of an ITS — CDSS/CFR worked example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE, comment = "#>",
+  fig.width = 7, fig.height = 4.5
+)
+library(PITS)
+```
+
+## Motivating example
+
+A hospital is planning to deploy a **clinical decision support system (CDSS)**
+intended to reduce its case fatality rate (CFR). The research team wants to
+answer, prospectively:
+
+> *"How many months of post-implementation follow-up do we need to reliably
+> detect a meaningful reduction in CFR?"*
+
+---
+
+## Step 1 — Load pre-intervention data
+
+```{r load-data}
+data("example_cfr_data")
+head(example_cfr_data)
+```
+
+```{r plot-predata, fig.cap = "Monthly CFR over 24 pre-intervention months."}
+plot(example_cfr_data$time, example_cfr_data$outcome,
+     type = "o", pch = 16, col = "steelblue", lwd = 1.2,
+     xlab = "Month", ylab = "CFR (%)",
+     main = "Pre-intervention case fatality rate",
+     las = 1, bty = "l")
+abline(lm(outcome ~ time, data = example_cfr_data),
+       col = "firebrick", lwd = 2, lty = 2)
+legend("topright", legend = c("Observed", "Linear trend"),
+       col = c("steelblue", "firebrick"), lty = 1,
+       pch = c(16, NA), bty = "n", cex = 0.85)
+grid(NULL, NULL, lwd = 0.6, col = rgb(0, 0, 0, 0.1))
+```
+
+---
+
+## Step 2 — Estimate nuisance parameters
+
+```{r estimate-params}
+params <- estimate_its_params(example_cfr_data)
+```
+
+```{r diag-plots, fig.width = 8, fig.height = 6,
+    fig.cap = "Diagnostic plots for pre-intervention residuals."}
+diagnose_params(example_cfr_data)
+```
+
+The residual ACF confirms moderate positive autocorrelation (rho ≈ 0.37),
+typical for monthly hospital data. Ignoring this would overstate power.
+
+---
+
+## Step 3 — Specify the clinical hypothesis
+
+`level_change` is **not** estimated from data — it is a clinical judgement:
+the minimum reduction the team would consider practice-changing.
+
+```{r hypothesis}
+level_change <- -3.0   # 3 pp reduction in CFR
+```
+
+---
+
+## Step 4 — Calculate power for a single design
+
+```{r single-design}
+result_24 <- calculate_power(
+  n_pre = params$n_pre, n_post = 24,
+  baseline = params$baseline, level_change = level_change,
+  sigma = params$sigma, rho = params$rho,
+  test = "level", n_sim = 1000, seed = 123
+)
+print(result_24)
+```
+
+24 months is borderline. The sweep below identifies the minimum adequate duration.
+
+---
+
+## Step 5 — Optimise with a design sweep
+
+```{r sweep}
+sweep <- power_sweep(
+  sweep_post   = c(12, 18, 24, 30, 36, 42, 48),
+  n_pre        = params$n_pre,
+  baseline     = params$baseline,
+  level_change = level_change,
+  sigma        = params$sigma,
+  rho          = params$rho,
+  test         = "level",
+  n_sim        = 1000, seed = 123
+)
+```
+
+```{r plot-sweep, fig.cap = "Power curve. Dashed red = 80% target; green = minimum adequate n_post."}
+plot_power_curve(
+  sweep,
+  main = "Power vs follow-up duration — CDSS/CFR example",
+  xlab = "Post-implementation months (n_post)",
+  ylab = "Estimated power (%)"
+)
+```
+
+---
+
+## Step 6 — Plot a simulated ITS realisation
+
+```{r its-example, fig.cap = "Simulated ITS under the alternative hypothesis with fitted segmented regression."}
+plot_its_example(
+  n_pre = params$n_pre, n_post = 30,
+  baseline = params$baseline, level_change = level_change,
+  sigma = params$sigma, rho = params$rho,
+  seed = 7,
+  xlab = "Month", ylab = "CFR (%)",
+  main = "Simulated ITS — CDSS effect on case fatality rate"
+)
+```
+
+---
+
+## Step 7 — Sensitivity analysis
+
+How sensitive is the required follow-up to uncertainty in `sigma` and `rho`?
+
+```{r grid}
+grid <- build_param_grid(
+  n_post       = c(18, 24, 30, 36, 42),
+  level_change = level_change,
+  sigma        = c(1.0, round(params$sigma, 1), 2.0, 2.5),
+  rho          = c(0.2, 0.4, 0.6),
+  n_pre        = params$n_pre,
+  baseline     = params$baseline
+)
+grid_results <- run_power_grid(grid, n_sim = 500, seed = 42, verbose = FALSE)
+```
+
+```{r heatmap-sigma, fig.height = 5,
+    fig.cap = "Power by n_post and sigma (rho = 0.4). Dashed line = first adequate column."}
+plot_power_heatmap(
+  grid_results[grid_results$rho == 0.4, ],
+  x = "n_post", y = "sigma",
+  main = "Power heatmap: n_post × sigma  (rho = 0.4)",
+  xlab = "Post-implementation months",
+  ylab = "Residual SD (sigma)"
+)
+```
+
+```{r heatmap-rho, fig.height = 5,
+    fig.cap = "Power by n_post and rho (sigma fixed at estimated value)."}
+sigma_val <- round(params$sigma, 1)
+plot_power_heatmap(
+  grid_results[round(grid_results$sigma, 1) == sigma_val, ],
+  x = "n_post", y = "rho",
+  main = sprintf("Power heatmap: n_post × rho  (sigma = %.1f)", sigma_val),
+  xlab = "Post-implementation months",
+  ylab = "Autocorrelation (rho)"
+)
+```
+
+---
+
+## Step 8 — Multi-site analysis
+
+If the CDSS is deployed simultaneously across three hospitals, pooling
+evidence increases power substantially.
+
+```{r multi-site}
+sites <- list(
+  list(name = "Hospital A", n_pre = 24, n_post = 24,
+       baseline = params$baseline, level_change = level_change,
+       slope_change = 0, sigma = params$sigma, rho = params$rho),
+  list(name = "Hospital B", n_pre = 24, n_post = 24,
+       baseline = 17.5, level_change = level_change,
+       slope_change = 0, sigma = 2.0, rho = 0.35),
+  list(name = "Hospital C", n_pre = 24, n_post = 24,
+       baseline = 13.0, level_change = level_change,
+       slope_change = 0, sigma = 1.8, rho = 0.42)
+)
+result_multi <- calculate_power_multi(
+  sites, test = "level", n_sim = 1000, seed = 123
+)
+print(result_multi)
+```
+
+---
+
+## Summary table
+
+```{r summary-table, echo = FALSE}
+knitr::kable(
+  sweep[, c("n_post", "power_pct", "interpretation")],
+  col.names = c("n_post (months)", "Power (%)", "Interpretation"),
+  caption = sprintf(
+    "Power by follow-up duration. baseline = %.1f%%, sigma = %.2f, rho = %.2f, level_change = %g pp.",
+    params$baseline, params$sigma, params$rho, level_change
+  )
+)
+```
+
+**Conclusion:** The study requires approximately
+**`r sweep$n_post[min(which(sweep$power >= 0.80))]` months** of
+post-implementation follow-up to achieve ≥ 80% power.
+
+---
+
+## One-call shortcut
+
+```{r one-call}
+result_quick <- estimate_and_calculate(
+  data = example_cfr_data,
+  level_change = -3, n_post = 30,
+  n_sim = 1000, seed = 123
+)
+cat(sprintf("Power: %.1f%%  (%s)\n",
+            result_quick$power_pct, result_quick$interpretation))
+```
+
+---
+
+## References
+
+- Lopez Bernal J, et al. (2017). *Int J Epidemiol* 46:348–355.
+- Zhang F, et al. (2011). *J Clin Epidemiol* 64:1252–1261.
+- Wagner AK, et al. (2002). *J Clin Pharm Ther* 27:299–309.

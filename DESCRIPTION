@@ -1,0 +1,36 @@
+Package: PITS
+Title: Power of Interrupted Time Series (ITS) Studies
+Version: 0.1.0
+Authors@R:
+    person("David", "de Lorenzo", email = "drdaviddelorenzo@gmail.com",
+           role = c("aut", "cre"))
+Description: Provides tools for estimating the statistical power of Interrupted
+    Time Series (ITS) designs, with a focus on healthcare applications. The
+    package supports prospective power calculations before a study begins, and
+    retrospective assessments of whether a completed study was adequately powered.
+    It includes functions to estimate nuisance parameters (baseline, residual
+    standard deviation, autocorrelation) from pre-intervention data, and to
+    estimate power via Monte Carlo simulation for single-site and multi-site
+    designs. Utility functions for design optimisation sweeps and publication-
+    ready plots are also provided.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Depends:
+    R (>= 4.0.0)
+Imports:
+    nlme,
+    stats,
+    graphics,
+    grDevices,
+    utils
+Suggests:
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+LazyData: true
+URL: https://github.com/drdaviddelorenzo/PITS
+BugReports: https://github.com/drdaviddelorenzo/PITS/issues
+Config/roxygen2/version: 8.0.0

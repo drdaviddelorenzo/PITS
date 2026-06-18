@@ -1,0 +1,262 @@
+---
+title: "Estimating ITS parameters from pre-intervention data"
+author: "PITS package"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Estimating ITS parameters from pre-intervention data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE, comment = "#>",
+  fig.width = 7, fig.height = 4.5
+)
+library(PITS)
+```
+
+## Overview
+
+Before running a power simulation, you need three **nuisance parameters**
+estimated from your pre-intervention time-series data:
+
+| Parameter | Symbol | Meaning |
+|-----------|--------|---------|
+| Baseline  | $\beta_0$ | Mean outcome at the start of the pre-intervention period |
+| Residual SD | $\sigma$ | Outcome variability from one time point to the next |
+| Autocorrelation | $\rho$ | AR(1) correlation between consecutive observations |
+
+A fourth quantity, `trend_pre`, checks whether the outcome was stable
+before the intervention. It should be close to zero.
+
+These parameters are **not** the intervention effect — that is your clinical
+hypothesis (`level_change`), which must be set separately based on
+clinical judgement or published evidence.
+
+---
+
+## Using individual estimation functions
+
+PITS provides individual functions for each parameter, useful when you want
+fine-grained control or wish to estimate only one quantity.
+
+```{r individual-functions}
+data("example_cfr_data")
+outcome <- example_cfr_data$outcome
+
+# Baseline: intercept of a linear trend fit at t = 1
+b <- estimate_baseline(outcome)
+cat("Baseline:", round(b, 3), "\n")
+
+# Sigma: residual SD after detrending
+s <- estimate_sigma(outcome)
+cat("Sigma:   ", round(s, 3), "\n")
+
+# Rho: lag-1 autocorrelation of residuals
+r <- estimate_rho(outcome)
+cat("Rho:     ", round(r, 3), "\n")
+
+# Pre-trend: slope per time unit (should be near zero)
+t_pre <- estimate_trend(outcome)
+cat("Trend:   ", round(t_pre, 4), "per month\n")
+```
+
+### When to use individual functions
+
+- You have estimates from the literature for some parameters and want to
+  estimate only the remainder
+- You want to compare estimates across different subsets of the pre-period
+- You are building a custom simulation pipeline
+
+---
+
+## Using the all-in-one wrapper
+
+For most use cases, `estimate_its_params()` is the most convenient entry
+point. It accepts either a data frame or a plain numeric vector.
+
+```{r all-in-one}
+# From a data frame with 'time' and 'outcome' columns
+params <- estimate_its_params(example_cfr_data)
+```
+
+```{r all-in-one-vector}
+# Or from a plain numeric vector (time index auto-generated)
+params2 <- estimate_its_params(example_cfr_data$outcome, verbose = FALSE)
+identical(params$sigma, params2$sigma)
+```
+
+The returned list plugs directly into `calculate_power()`:
+
+```{r params-to-power, eval = FALSE}
+result <- calculate_power(
+  n_pre        = params$n_pre,
+  n_post       = 30,
+  baseline     = params$baseline,
+  level_change = -3,          # <-- your clinical hypothesis
+  sigma        = params$sigma,
+  rho          = params$rho
+)
+```
+
+---
+
+## Custom column names
+
+If your data uses different column names, pass them explicitly:
+
+```{r custom-cols}
+# Rename for illustration
+alt_data <- example_cfr_data
+names(alt_data) <- c("month", "cfr_pct")
+
+params_alt <- estimate_its_params(
+  alt_data,
+  outcome_col = "cfr_pct",
+  time_col    = "month",
+  verbose     = FALSE
+)
+cat("Sigma:", round(params_alt$sigma, 3), "\n")
+```
+
+---
+
+## Diagnostic plots
+
+Always inspect the pre-intervention data before trusting parameter estimates.
+`diagnose_params()` produces a 2×2 panel covering the four key checks:
+
+```{r diag-full, fig.width = 8, fig.height = 6,
+    fig.cap = "Diagnostic panel: (1) observed series with fitted trend — checks for outliers and non-linearity; (2) residuals over time — checks for heteroscedasticity; (3) Q-Q plot — checks for normality of residuals; (4) residual ACF — quantifies autocorrelation structure."}
+out <- diagnose_params(example_cfr_data)
+```
+
+What to look for:
+
+1. **Observed + trend**: a roughly flat or very gently sloped trend line.
+   A steep pre-trend (> 5% of baseline per period) may indicate confounding.
+2. **Residuals over time**: random scatter around zero, no funnelling or
+   systematic patterns.
+3. **Q-Q plot**: points close to the diagonal. Heavy tails are acceptable
+   for monthly rates; severe departures suggest the Gaussian model may not
+   hold and counts-based modelling (Poisson/Negative Binomial) should be
+   considered.
+4. **Residual ACF**: a single large bar at lag 1 followed by rapid decay
+   is consistent with AR(1). Multiple large bars suggest higher-order
+   autocorrelation; consider a longer pre-period or seasonal adjustment.
+
+---
+
+## What if I have no pre-intervention data?
+
+If historical data are not available, use `simulate_predata()` to generate
+a synthetic pre-intervention series and explore how different parameter
+assumptions affect power. Then use the literature or expert elicitation to
+justify your choices.
+
+```{r simulate-predata}
+# Simulate pre-intervention data with assumed parameters
+pre_synthetic <- simulate_predata(
+  n        = 24,
+  baseline = 15,
+  sigma    = 2.0,
+  rho      = 0.40,
+  seed     = 42
+)
+head(pre_synthetic)
+```
+
+```{r plot-synthetic, fig.cap = "Synthetic pre-intervention series (baseline = 15, sigma = 2, rho = 0.40)."}
+plot(pre_synthetic$time, pre_synthetic$outcome,
+     type = "o", pch = 16, col = "steelblue",
+     xlab = "Time", ylab = "Outcome",
+     main = "Synthetic pre-intervention data",
+     las = 1, bty = "l")
+abline(h = 15, lty = 2, col = "grey50")
+grid(NULL, NULL, lwd = 0.6, col = rgb(0, 0, 0, 0.1))
+```
+
+You can then recover the estimated parameters from this synthetic series
+to verify your simulation is self-consistent:
+
+```{r verify-synthetic}
+recovered <- estimate_its_params(pre_synthetic, verbose = FALSE)
+cat(sprintf("Target  → baseline: 15.00  sigma: 2.000  rho: 0.400\n"))
+cat(sprintf("Recovered → baseline: %.2f  sigma: %.3f  rho: %.3f\n",
+            recovered$baseline, recovered$sigma, recovered$rho))
+```
+
+Small discrepancies are expected from a single 24-point realisation.
+Longer pre-periods (n = 48–60) yield more reliable estimates.
+
+---
+
+## Handling non-standard situations
+
+### Date-indexed time column
+
+`estimate_its_params()` accepts date columns and converts them to a
+sequential integer index automatically:
+
+```{r date-example, eval = FALSE}
+# If your data has a 'date' column of class Date:
+params <- estimate_its_params(
+  my_data,
+  outcome_col = "cfr",
+  time_col    = "date"     # Date objects are handled automatically
+)
+```
+
+### Missing values
+
+Missing values in the outcome are removed with a warning before fitting:
+
+```{r missing-values}
+data_with_na <- example_cfr_data
+data_with_na$outcome[c(5, 12)] <- NA
+
+params_na <- suppressWarnings(
+  estimate_its_params(data_with_na, verbose = FALSE)
+)
+cat("n_pre after removing NAs:", params_na$n_pre, "\n")
+```
+
+### Very short pre-periods
+
+Fewer than 12 observations produces a warning. Estimates become
+increasingly unreliable as the pre-period shrinks, and are essentially
+meaningless below n = 8.
+
+```{r short-preperiod, warning = TRUE}
+params_short <- estimate_its_params(
+  example_cfr_data$outcome[1:9],
+  verbose = FALSE
+)
+```
+
+If you genuinely have fewer than 12 pre-intervention observations,
+consider whether the ITS design is appropriate, or whether a
+controlled ITS (with a comparison series) would be more robust.
+
+---
+
+## Typical parameter ranges for monthly hospital data
+
+As a reference when pre-intervention data are unavailable:
+
+| Parameter | Typical range | Notes |
+|-----------|--------------|-------|
+| `sigma` | 10–20% of baseline | Higher for small hospitals or rare outcomes |
+| `rho` (monthly) | 0.30–0.50 | Use 0.40 as a conservative default |
+| `rho` (weekly) | 0.50–0.80 | Consider aggregating to monthly |
+| `rho` (daily) | 0.70–0.90 | Strong case for monthly aggregation |
+
+---
+
+## References
+
+- Lopez Bernal J, et al. (2017). *Int J Epidemiol* 46:348–355.
+- Wagner AK, et al. (2002). *J Clin Pharm Ther* 27:299–309.
+- Zhang F, et al. (2011). *J Clin Epidemiol* 64:1252–1261.
