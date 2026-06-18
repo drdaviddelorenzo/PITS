@@ -80,12 +80,17 @@ level_change <- -3.0   # 3 pp reduction in CFR
 
 ## Step 4 — Calculate power for a single design
 
+> **Note on simulation size.** To keep this vignette fast to build, the
+> examples below use a small number of Monte Carlo replications
+> (`n_sim` = 100–200). For a reportable analysis, use `n_sim = 1000` or more
+> for stable power estimates.
+
 ```{r single-design}
 result_24 <- calculate_power(
   n_pre = params$n_pre, n_post = 24,
   baseline = params$baseline, level_change = level_change,
   sigma = params$sigma, rho = params$rho,
-  test = "level", n_sim = 1000, seed = 123
+  test = "level", n_sim = 200, seed = 123
 )
 print(result_24)
 ```
@@ -105,7 +110,7 @@ sweep <- power_sweep(
   sigma        = params$sigma,
   rho          = params$rho,
   test         = "level",
-  n_sim        = 1000, seed = 123
+  n_sim        = 200, seed = 123
 )
 ```
 
@@ -141,14 +146,14 @@ How sensitive is the required follow-up to uncertainty in `sigma` and `rho`?
 
 ```{r grid}
 grid <- build_param_grid(
-  n_post       = c(18, 24, 30, 36, 42),
+  n_post       = c(18, 24, 30, 36),
   level_change = level_change,
-  sigma        = c(1.0, round(params$sigma, 1), 2.0, 2.5),
+  sigma        = c(1.0, round(params$sigma, 1), 2.0),
   rho          = c(0.2, 0.4, 0.6),
   n_pre        = params$n_pre,
   baseline     = params$baseline
 )
-grid_results <- run_power_grid(grid, n_sim = 500, seed = 42, verbose = FALSE)
+grid_results <- run_power_grid(grid, n_sim = 100, seed = 42, verbose = FALSE)
 ```
 
 ```{r heatmap-sigma, fig.height = 5,
@@ -194,7 +199,7 @@ sites <- list(
        slope_change = 0, sigma = 1.8, rho = 0.42)
 )
 result_multi <- calculate_power_multi(
-  sites, test = "level", n_sim = 1000, seed = 123
+  sites, test = "level", n_sim = 200, seed = 123
 )
 print(result_multi)
 ```
@@ -226,7 +231,7 @@ post-implementation follow-up to achieve ≥ 80% power.
 result_quick <- estimate_and_calculate(
   data = example_cfr_data,
   level_change = -3, n_post = 30,
-  n_sim = 1000, seed = 123
+  n_sim = 200, seed = 123
 )
 cat(sprintf("Power: %.1f%%  (%s)\n",
             result_quick$power_pct, result_quick$interpretation))

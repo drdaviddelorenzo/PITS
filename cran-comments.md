@@ -1,8 +1,19 @@
+## Resubmission
+
+This is a resubmission. The initial submission was flagged by the incoming
+pre-test for "Overall checktime 12 min > 10 min". The vignette
+`cdss-cfr-example.Rmd` ran large Monte Carlo simulations (including a full
+parameter grid) during rebuilding. The number of simulation replications in the
+vignette has been reduced to illustrative sizes (n_sim = 100-200, smaller
+parameter grid), with a note advising users to use n_sim >= 1000 for real
+analyses. Vignette re-building now completes in under 20 seconds and the full
+`R CMD check --as-cran` runs in about one minute locally.
+
 ## Submission summary
 
-This is a new submission. PITS provides simulation-based statistical power
-analysis for Interrupted Time Series (ITS) study designs, and is the R companion
-to a methods manuscript currently in preparation.
+PITS provides simulation-based statistical power analysis for Interrupted Time
+Series (ITS) study designs, and is the R companion to a methods manuscript
+currently in preparation.
 
 ## Test environments
 
