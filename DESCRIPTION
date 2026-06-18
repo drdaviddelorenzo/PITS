@@ -9,7 +9,8 @@ Description: Provides tools for estimating the statistical power of Interrupted
     package supports prospective power calculations before a study begins, and
     retrospective assessments of whether a completed study was adequately powered.
     It includes functions to estimate nuisance parameters (baseline, residual
-    standard deviation, autocorrelation) from pre-intervention data, and to
+    standard deviation, autocorrelation) from data observed before the
+    intervention, and to
     estimate power via Monte Carlo simulation for single-site and multi-site
     designs. Utility functions for design optimisation sweeps and publication-
     ready plots are also provided.

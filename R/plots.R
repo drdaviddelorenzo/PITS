@@ -28,10 +28,11 @@
 #' @return Invisibly \code{NULL}. Called for its side-effect (plot).
 #'
 #' @examples
+#' # Small n_sim for a fast example; use 1000+ for a reportable estimate.
 #' sweep <- power_sweep(
-#'   sweep_post = c(12, 18, 24, 30, 36),
+#'   sweep_post = c(12, 24, 36),
 #'   n_pre = 24, baseline = 15, level_change = -3,
-#'   sigma = 2.5, rho = 0.4, n_sim = 200, seed = 42
+#'   sigma = 2.5, rho = 0.4, n_sim = 50, seed = 42, verbose = FALSE
 #' )
 #' plot_power_curve(sweep)
 #'

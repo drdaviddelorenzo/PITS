@@ -44,10 +44,13 @@ estimate.
 }
 \examples{
 data("example_cfr_data")
+# Small n_sim for a fast example; use 1000+ for a reportable estimate.
 result <- estimate_and_calculate(
   data         = example_cfr_data,
   level_change = -1.0,
-  n_post       = 24
+  n_post       = 24,
+  n_sim        = 100,
+  verbose      = FALSE
 )
 result$power_pct
 
