@@ -162,10 +162,12 @@ simulate_predata <- function(n        = 24L,
 #' @return Invisibly, a named character vector of file paths written.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' result <- calculate_power(n_pre = 24, n_post = 24, baseline = 15,
-#'                           level_change = -3, sigma = 2.5, rho = 0.4)
-#' export_results(result, dir = "my_study")
+#'                           level_change = -3, sigma = 2.5, rho = 0.4,
+#'                           n_sim = 100)
+#' # Write to a temporary directory (use your own path in practice):
+#' export_results(result, dir = tempdir())
 #' }
 #'
 #' @export
@@ -259,12 +261,12 @@ export_results <- function(result, dir = "pits_output", prefix = "pits") {
 #'   (from [power_sweep()]).
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' run_its_power(
 #'   n_pre = 24, n_post = 24,
 #'   baseline = 15, level_change = -3,
 #'   sigma = 2.5, rho = 0.4,
-#'   sweep = TRUE
+#'   n_sim = 100, sweep = TRUE
 #' )
 #' }
 #'

@@ -1,0 +1,36 @@
+citHeader("To cite PITS in publications, please cite the methods paper. Until it is published, please cite the software and the manuscript in preparation:")
+
+bibentry(
+  bibtype  = "Article",
+  title    = paste0("Using Simulations to Estimate the Statistical Power of ",
+                    "Interrupted Time Series Studies: A Practical Guide for ",
+                    "Health Researchers"),
+  author   = c(
+    person("David", "de Lorenzo"),
+    person("Mario", "Cortina-Borja"),
+    person("Michelle", "Heys")
+  ),
+  year     = "2026",
+  journal  = "Manuscript in preparation",
+  note     = "DOI to be added on acceptance",
+  textVersion = paste0(
+    "de Lorenzo D, Cortina-Borja M, Heys M (2026). ",
+    "Using Simulations to Estimate the Statistical Power of Interrupted ",
+    "Time Series Studies: A Practical Guide for Health Researchers. ",
+    "Manuscript in preparation."
+  )
+)
+
+bibentry(
+  bibtype  = "Manual",
+  title    = "PITS: Power of Interrupted Time Series (ITS) Studies",
+  author   = person("David", "de Lorenzo"),
+  year     = "2026",
+  note     = "R package version 0.1.0",
+  url      = "https://github.com/drdaviddelorenzo/PITS",
+  textVersion = paste0(
+    "de Lorenzo D (2026). PITS: Power of Interrupted Time Series (ITS) ",
+    "Studies. R package version 0.1.0. ",
+    "https://github.com/drdaviddelorenzo/PITS"
+  )
+)

@@ -107,14 +107,14 @@ plot_power_curve <- function(sweep_result,
 #' @return Invisibly \code{NULL}. Called for its side-effect (plot).
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' grid <- build_param_grid(
-#'   n_post       = c(12, 18, 24, 30, 36),
+#'   n_post       = c(12, 24, 36),
 #'   level_change = c(-1, -2, -3),
 #'   sigma        = 2.5,
 #'   rho          = 0.4
 #' )
-#' results <- run_power_grid(grid, n_sim = 300)
+#' results <- run_power_grid(grid, n_sim = 100, verbose = FALSE)
 #' plot_power_heatmap(results, x = "n_post", y = "level_change")
 #' }
 #'

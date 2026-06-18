@@ -65,12 +65,12 @@ Convenience wrapper that replicates the interactive experience of
 sweep, prints formatted output to the console, and optionally saves results.
 }
 \examples{
-\dontrun{
+\donttest{
 run_its_power(
   n_pre = 24, n_post = 24,
   baseline = 15, level_change = -3,
   sigma = 2.5, rho = 0.4,
-  sweep = TRUE
+  n_sim = 100, sweep = TRUE
 )
 }
 
