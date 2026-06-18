@@ -61,11 +61,11 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: David de Lorenzo \email{drdaviddelorenzo@gmail.com}
+\strong{Maintainer}: David de Lorenzo \email{drdaviddelorenzo@gmail.com} (\href{https://orcid.org/0000-0003-2042-0961}{ORCID})
 
 Authors:
 \itemize{
-  \item David de Lorenzo \email{drdaviddelorenzo@gmail.com}
+  \item David de Lorenzo \email{drdaviddelorenzo@gmail.com} (\href{https://orcid.org/0000-0003-2042-0961}{ORCID})
 }
 
 }
