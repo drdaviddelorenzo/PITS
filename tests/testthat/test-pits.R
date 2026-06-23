@@ -321,6 +321,19 @@ test_that("export_results writes two files and returns paths", {
   expect_true(all(file.exists(paths)))
 })
 
+test_that("export_results requires an explicit dir (no default path)", {
+  r <- calculate_power(12, 12, 15, -3, 0, 2, 0.4, n_sim = 30, seed = 1)
+  expect_error(export_results(r), "dir")
+})
+
+test_that("run_its_power errors if save_output = TRUE without output_dir", {
+  expect_error(
+    run_its_power(12, 12, 15, -3, sigma = 2, rho = 0.4,
+                  n_sim = 30, seed = 1, save_output = TRUE),
+    "output_dir"
+  )
+})
+
 test_that("export_results handles a sweep data frame", {
   sw <- power_sweep(c(12, 24), n_pre = 12, baseline = 15,
                    level_change = -3, sigma = 2, rho = 0.4,

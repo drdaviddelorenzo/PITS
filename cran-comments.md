@@ -1,13 +1,26 @@
 ## Resubmission
 
-This is a resubmission. The initial submission was flagged by the incoming
-pre-test for "Overall checktime 12 min > 10 min". The vignette
-`cdss-cfr-example.Rmd` ran large Monte Carlo simulations (including a full
-parameter grid) during rebuilding. The number of simulation replications in the
-vignette has been reduced to illustrative sizes (n_sim = 100-200, smaller
-parameter grid), with a note advising users to use n_sim >= 1000 for real
-analyses. Vignette re-building now completes in under 20 seconds and the full
-`R CMD check --as-cran` runs in about one minute locally.
+This is a resubmission addressing a CRAN reviewer comment (Benjamin Altmann):
+functions must not write to the user's home filespace (including the working
+directory) by default.
+
+* `export_results()`: the `dir` argument no longer has a default; the user must
+  supply an output directory. The function errors with an informative message if
+  `dir` is not given.
+* `run_its_power()`: `output_dir` now defaults to `NULL`; when
+  `save_output = TRUE` the user must supply a directory, otherwise the function
+  errors. With the default `save_output = FALSE`, nothing is written.
+
+No function now writes to the working directory or home filespace by default.
+Examples, tests and vignettes that write files use `tempdir()`.
+
+### Earlier resubmission (check time)
+
+A previous resubmission reduced the Monte Carlo replications in the
+`cdss-cfr-example.Rmd` vignette (n_sim = 100-200, smaller parameter grid) to fix
+an "Overall checktime > 10 min" pre-test NOTE. Vignette re-building now completes
+in under 20 seconds; the full `R CMD check --as-cran` runs in about one minute
+locally.
 
 ## Submission summary
 

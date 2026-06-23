@@ -19,7 +19,7 @@ run_its_power(
   sweep = FALSE,
   sweep_post = c(6L, 12L, 18L, 24L, 30L, 36L),
   save_output = FALSE,
-  output_dir = "pits_output"
+  output_dir = NULL
 )
 }
 \arguments{
@@ -50,9 +50,12 @@ run_its_power(
 \item{sweep_post}{Integer vector. \code{n_post} values for the sweep.}
 
 \item{save_output}{Logical. If \code{TRUE}, save results via
-\code{\link[=export_results]{export_results()}}.}
+\code{\link[=export_results]{export_results()}}. Default \code{FALSE} (nothing is written to disk).}
 
-\item{output_dir}{Character. Directory for saved files.}
+\item{output_dir}{Character. Directory for saved files, required only when
+\code{save_output = TRUE}. There is no default path: supply your own
+directory (e.g. a project subdirectory, or \code{tempdir()}). Nothing is
+ever written to the working directory or home filespace by default.}
 }
 \value{
 Invisibly, a list with elements \code{result} (from

@@ -70,7 +70,10 @@
 * `simulate_predata()` — generates synthetic pre-intervention data with
   known parameters; useful for testing and vignette examples.
 * `export_results()` — saves `pits_power_result` or `pits_sweep_result`
-  objects to timestamped CSV and plain-text summary files.
+  objects to timestamped CSV and plain-text summary files. The output
+  directory (`dir`) must be supplied by the user; there is no default path,
+  so nothing is ever written to the working directory or home filespace
+  unless explicitly requested.
 * `run_its_power()` — full single-site workflow with console output and
   optional sweep and file saving.
 * `estimate_and_calculate()` — chains parameter estimation and power

@@ -4,13 +4,16 @@
 \alias{export_results}
 \title{Export PITS results to CSV and plain-text summary}
 \usage{
-export_results(result, dir = "pits_output", prefix = "pits")
+export_results(result, dir, prefix = "pits")
 }
 \arguments{
 \item{result}{Output from \code{\link[=calculate_power]{calculate_power()}} or \code{\link[=power_sweep]{power_sweep()}}.}
 
-\item{dir}{Character. Output directory. Created if it does not exist.
-Default \code{"pits_output"}.}
+\item{dir}{Character. Output directory, supplied by the user; created if it
+does not exist. There is no default: you must choose where files are
+written (e.g. a project subdirectory, or \code{tempdir()} for throwaway
+output). The function never writes to the working directory or home
+filespace unless you point \code{dir} there.}
 
 \item{prefix}{Character. File name prefix. Default \code{"pits"}.}
 }

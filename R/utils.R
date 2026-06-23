@@ -155,8 +155,11 @@ simulate_predata <- function(n        = 24L,
 #' files in the specified directory.
 #'
 #' @param result Output from [calculate_power()] or [power_sweep()].
-#' @param dir Character. Output directory. Created if it does not exist.
-#'   Default \code{"pits_output"}.
+#' @param dir Character. Output directory, supplied by the user; created if it
+#'   does not exist. There is no default: you must choose where files are
+#'   written (e.g. a project subdirectory, or \code{tempdir()} for throwaway
+#'   output). The function never writes to the working directory or home
+#'   filespace unless you point \code{dir} there.
 #' @param prefix Character. File name prefix. Default \code{"pits"}.
 #'
 #' @return Invisibly, a named character vector of file paths written.
@@ -171,7 +174,11 @@ simulate_predata <- function(n        = 24L,
 #' }
 #'
 #' @export
-export_results <- function(result, dir = "pits_output", prefix = "pits") {
+export_results <- function(result, dir, prefix = "pits") {
+  if (missing(dir) || is.null(dir) || !is.character(dir) || length(dir) != 1)
+    stop("'dir' must be supplied as a single output directory path ",
+         "(e.g. a project subdirectory, or tempdir()). ",
+         "export_results() never writes to the working directory by default.")
   if (!dir.exists(dir)) dir.create(dir, recursive = TRUE)
   ts <- format(Sys.time(), "%Y%m%d_%H%M%S")
 
@@ -253,8 +260,11 @@ export_results <- function(result, dir = "pits_output", prefix = "pits") {
 #' @param sweep Logical. If \code{TRUE}, also run [power_sweep()].
 #' @param sweep_post Integer vector. \code{n_post} values for the sweep.
 #' @param save_output Logical. If \code{TRUE}, save results via
-#'   [export_results()].
-#' @param output_dir Character. Directory for saved files.
+#'   [export_results()]. Default \code{FALSE} (nothing is written to disk).
+#' @param output_dir Character. Directory for saved files, required only when
+#'   \code{save_output = TRUE}. There is no default path: supply your own
+#'   directory (e.g. a project subdirectory, or \code{tempdir()}). Nothing is
+#'   ever written to the working directory or home filespace by default.
 #'
 #' @return Invisibly, a list with elements \code{result} (from
 #'   [calculate_power()]) and, if \code{sweep = TRUE}, \code{sweep}
@@ -286,9 +296,13 @@ run_its_power <- function(n_pre,
                           sweep        = FALSE,
                           sweep_post   = c(6L, 12L, 18L, 24L, 30L, 36L),
                           save_output  = FALSE,
-                          output_dir   = "pits_output") {
+                          output_dir   = NULL) {
 
   test <- match.arg(test)
+  if (save_output && (is.null(output_dir) || !is.character(output_dir)))
+    stop("When 'save_output = TRUE', supply 'output_dir' (a directory path, ",
+         "e.g. tempdir()). run_its_power() never writes to the working ",
+         "directory by default.")
   validate_params(n_pre, n_post, baseline, level_change, sigma, rho,
                   alpha, n_sim)
 
