@@ -1,5 +1,17 @@
 # PITS News
 
+## PITS 0.1.1 (2026-07-01)
+
+### Documentation
+
+* New vignette, *Under the hood: the simulation engine*
+  (`its-power-fundamentals.Rmd`): a transparent, annotated reference
+  implementation of the Monte Carlo power engine (AR(1) data-generating
+  process, segmented-regression GLS fit, detection loop), reproduced as
+  "Box 1" in the companion methods paper (de Lorenzo et al., *Using
+  Simulations to Estimate the Statistical Power of Interrupted Time
+  Series Studies*). No exported function behaviour changed.
+
 ## PITS 0.1.0 (2026-03-26)
 
 ### Initial release

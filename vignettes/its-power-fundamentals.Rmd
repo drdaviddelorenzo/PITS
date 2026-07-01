@@ -1,0 +1,144 @@
+---
+title: "Under the hood: the simulation engine"
+author: "PITS package"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Under the hood: the simulation engine}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE, comment = "#>",
+  fig.width = 7, fig.height = 4.5
+)
+library(PITS)
+```
+
+## Purpose
+
+This vignette is the companion "glass box" for the PITS methods paper
+(de Lorenzo et al., *Using Simulations to Estimate the Statistical Power of
+Interrupted Time Series Studies*). It shows, in full, the reference
+implementation of the simulation engine that every worked example in the
+paper and every call to `calculate_power()` ultimately relies on: an AR(1)
+data-generating process, a segmented-regression GLS fit, and a Monte Carlo
+loop that counts how often the intervention effect is detected.
+
+The point is transparency, not novelty. **`calculate_power()` implements
+exactly the engine shown below**; in day-to-day use you should call the
+tested, documented package functions (`estimate_its_params()`,
+`calculate_power()`, `calculate_power_multi()`, `power_sweep()`), which wrap
+this loop with input validation, multi-site support, and reproducible
+seeding. This vignette exists so that the method itself, not just its
+output, can be inspected and understood.
+
+## The model
+
+The standard ITS analysis uses a segmented regression model:
+
+\[
+y_t = \beta_0 + \beta_1 t + \delta D_t + \gamma T_t^{*} + \varepsilon_t
+\]
+
+where \(D_t\) is a step indicator (0 pre-intervention, 1 post-intervention),
+\(T_t^{*}\) is time elapsed since the intervention, \(\delta\) is the
+**level change** (the parameter of primary interest in most studies), and
+\(\varepsilon_t\) follows a first-order autoregressive, AR(1), process with
+correlation \(\rho\) between consecutive errors. Positive autocorrelation
+(the norm in routine health data) reduces the effective sample size and
+inflates the standard error of \(\delta\), which is why ignoring it produces
+overoptimistic power estimates.
+
+## Box 1: the simulation engine
+
+The block below is deliberately short (about 25 lines of executable code)
+and self-contained: base R plus a single call to `nlme::gls()`. It performs
+one Monte Carlo replication inside `replicate()`: (a) generate one synthetic
+AR(1) time series under the assumed effect, (b) fit the segmented-regression
+model by generalised least squares with an AR(1) correlation structure, and
+(c) record whether the level-change coefficient was detected at
+\(\alpha = 0.05\). Repeating this `n_sim` times and averaging the detection
+indicator gives the estimated power.
+
+```{r box1, eval = FALSE}
+# --- Box 1: the simulation engine --------------------------------------
+set.seed(123)
+n_pre  <- 24;  n_post <- 24            # (design) time points either side
+n_sim  <- 1000                          # Monte Carlo replications
+baseline <- 15; level_change <- -5.5    # baseline outcome, level change
+sigma <- 2.5;   rho <- 0.4              # residual SD, AR(1) autocorrelation
+
+detected <- replicate(n_sim, {
+
+  # (a) generate one synthetic AR(1) time series under the true effect
+  n   <- n_pre + n_post
+  t   <- seq_len(n)
+  D   <- as.integer(t > n_pre)                       # 0 pre, 1 post
+  mu  <- baseline + level_change * D                 # mean function
+  eps <- numeric(n)
+  innovation_sd <- sigma * sqrt(1 - rho^2)
+  for (i in seq_len(n))                              # AR(1) errors
+    eps[i] <- rho * (if (i > 1) eps[i - 1] else 0) +
+              rnorm(1, 0, innovation_sd)
+  y <- mu + eps
+
+  # (b) fit the segmented-regression model, AR(1)-corrected by GLS
+  fit <- nlme::gls(
+    y ~ t + D,
+    correlation = nlme::corAR1(form = ~ t),
+    method      = "ML"
+  )
+
+  # (c) was the level-change coefficient detected at alpha = 0.05?
+  summary(fit)$tTable["D", "p-value"] < 0.05
+})
+
+power <- mean(detected)   # proportion of replications with p < 0.05
+power
+```
+
+That is the whole engine. Everything else in the package — parameter
+estimation from pre-intervention data, multi-site mixed-effects models,
+design-optimisation sweeps, and plotting — is built around this loop.
+
+## From Box 1 to the package
+
+`simulate_its_data()` implements step (a); `fit_its_model()` implements
+step (b) and additionally supports testing a slope change or a joint
+level-and-slope test; `calculate_power()` implements the full loop in step
+(c), plus input validation, an informative `print()` method, and
+reproducible seeding via a `seed` argument:
+
+```{r compare, eval = FALSE}
+# The package equivalent of Box 1:
+result <- calculate_power(
+  n_pre = 24, n_post = 24,
+  baseline = 15, level_change = -5.5,
+  sigma = 2.5, rho = 0.4,
+  n_sim = 1000, seed = 123
+)
+result$power_pct
+```
+
+For a multi-site design, `calculate_power_multi()` runs the same
+data-generating process independently for each site and fits a mixed-effects
+extension of the model in Box 1 (`nlme::lme()`, with a site-specific random
+intercept and AR(1) errors within site). For finding the minimum
+post-intervention follow-up needed for adequate power, `power_sweep()` calls
+`calculate_power()` repeatedly across a range of `n_post` values.
+
+## Where this fits in the paper
+
+* The **Method** section of the paper reproduces Box 1 in full and explains
+  each step in prose.
+* The four **worked examples** (Scenarios 1-4) are run using the tested
+  package functions, not by copying Box 1 by hand — see
+  `vignette("cdss-cfr-example", package = "PITS")`.
+* Estimating `sigma` and `rho` from real pre-intervention data is covered in
+  `vignette("parameter-estimation", package = "PITS")`.
+
+See `?calculate_power`, `?simulate_its_data`, and `?fit_its_model` for full
+argument documentation.

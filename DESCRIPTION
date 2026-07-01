@@ -1,6 +1,6 @@
 Package: PITS
 Title: Power of Interrupted Time Series (ITS) Studies
-Version: 0.1.0
+Version: 0.1.1
 Authors@R:
     person("David", "de Lorenzo", email = "drdaviddelorenzo@gmail.com",
            role = c("aut", "cre"),
