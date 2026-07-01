@@ -1,5 +1,6 @@
 # PITS — Power of an Interrupted Time Series
 
+[![CRAN status](https://www.r-pkg.org/badges/version/PITS)](https://CRAN.R-project.org/package=PITS)
 [![R-CMD-check](https://github.com/drdaviddelorenzo/PITS/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/drdaviddelorenzo/PITS/actions/workflows/R-CMD-check.yaml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![R >= 4.0](https://img.shields.io/badge/R-%3E%3D%204.0-brightgreen)](https://www.r-project.org/)
@@ -14,12 +15,12 @@ Use PITS to answer:
 ## Installation
 
 ```r
-# From GitHub (once published):
+# From CRAN (recommended):
+install.packages("PITS")
+
+# Development version from GitHub:
 # install.packages("remotes")
 # remotes::install_github("drdaviddelorenzo/PITS")
-
-# From source:
-install.packages("path/to/PITS", repos = NULL, type = "source")
 ```
 
 **Dependency:** `nlme` (ships with base R). No other dependencies required.

@@ -27,10 +27,10 @@ bibentry(
   author   = person("David", "de Lorenzo"),
   year     = "2026",
   note     = "R package version 0.1.0",
-  url      = "https://github.com/drdaviddelorenzo/PITS",
+  url      = "https://CRAN.R-project.org/package=PITS",
   textVersion = paste0(
     "de Lorenzo D (2026). PITS: Power of Interrupted Time Series (ITS) ",
     "Studies. R package version 0.1.0. ",
-    "https://github.com/drdaviddelorenzo/PITS"
+    "https://CRAN.R-project.org/package=PITS"
   )
 )
